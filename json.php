@@ -25,22 +25,17 @@ function send_download_notification_email($success, $file_path) {
 
 // Ação agendada para executar o download uma vez por dia
 function download_json_once_per_day() {
-    $json_url = '/retornaConveniado/'; // Substitua pela URL do JSON que deseja baixar
+    $json_url = 'retornaConveniado/'; // Substitua pela URL do JSON que deseja baixar
     $upload_dir = wp_upload_dir();
     $json_file_path = $upload_dir['basedir'] . '/conveniados.json';
     $success = download_json($json_url, $json_file_path);
     send_download_notification_email($success, $json_file_path);
 }
-add_action('wp', 'schedule_json_download');
-function schedule_json_download() {
-    if (!wp_next_scheduled('download_json_once_per_day')) {
-        wp_schedule_event(time(), 'daily', 'download_json_once_per_day');
-    }
-}
+add_action('wp', 'download_json_once_per_day'); // Execute diariamente
 
 // Ação para download manual ao clicar em um botão
 function download_json_manually() {
-    $json_url = '/retornaConveniado/'; // Substitua pela URL do JSON que deseja baixar
+    $json_url = 'retornaConveniado/'; // Substitua pela URL do JSON que deseja baixar
     $upload_dir = wp_upload_dir();
     $json_file_path = $upload_dir['basedir'] . '/conveniados.json';
     $success = download_json($json_url, $json_file_path);
@@ -70,10 +65,10 @@ function remove_date_from_json_filename($filename) {
 }
 add_filter('sanitize_file_name', 'remove_date_from_json_filename');
 
-// Ativar a ação de download no ativação do plugin
-register_activation_hook(__FILE__, 'schedule_json_download');
+// Ativar a ação de download na ativação do plugin
+register_activation_hook(__FILE__, 'download_json_once_per_day');
 
-// Desativar a ação no desativação do plugin
+// Desativar a ação na desativação do plugin
 register_deactivation_hook(__FILE__, 'deactivate_json_download');
 function deactivate_json_download() {
     wp_clear_scheduled_hook('download_json_once_per_day');
